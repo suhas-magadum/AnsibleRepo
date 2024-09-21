@@ -1,0 +1,8 @@
+- name: Hello World Sample
+  hosts: localhost
+  tasks:
+    - add_host:
+        name: "10.198.252.207"
+        groups: created_nodes
+        ansible_user: ubuntu
+        instance_name: "10.198.252.207-instance"

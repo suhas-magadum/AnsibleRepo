@@ -1,0 +1,23 @@
+--- 
+- name: set up nginx
+  hosts: all
+  become: yes
+  tasks: 
+    - name: install nginx
+      apt:
+        name: nginx
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - debug: var=ansible_facts
+    - name: install nginx redhat
+      yum:
+        name: nginx
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' or ansible_distribution == 'RedHat'
+    - name: start nginx
+      service: 
+        name: nginx
+        state: started
+        enabled: yes  # if you want to also enable nginx

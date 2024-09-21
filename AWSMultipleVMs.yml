@@ -1,0 +1,48 @@
+---
+- name: Create Ec2 instances
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-west-1
+  tasks:
+    - name: create vm
+      ec2_instance:
+        instance_ids: "{{instance_ids}}"
+        name: "{{instance_name}}"
+        instance_type: t2.micro
+        image_id: "{{image_id}}"
+        state: present
+        region: "{{region}}"
+        key_name: "{{key}}"
+        vpc_subnet_id: "{{subnet_id}}"
+        network:
+          assign_public_ip: yes
+        wait: yes
+        wait_timeout: 500
+        tags:
+          name: appservers
+          os: ubuntu
+          deploymentID: "{{ deploymentID }}"
+      register: vm
+    - debug: var=vm
+    - name: create another vm
+      ec2_instance:
+        instance_ids: "{{instance_ids}}"
+        name: "{{instance_name}}"
+        instance_type: t2.micro
+        image_id: "{{image_id}}"
+        state: present
+        region: "{{region}}"
+        key_name: "{{key}}"
+        vpc_subnet_id: "{{subnet_id}}"
+        network:
+          assign_public_ip: yes
+        wait: yes
+        wait_timeout: 500
+        tags:
+          name: appservers
+          os: ubuntu
+          deploymentID: "{{ deploymentID }}"
+      register: vm2
+    - debug: var=vm2

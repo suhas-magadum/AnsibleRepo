@@ -1,0 +1,23 @@
+--- 
+- name: stop up nginx
+  hosts: all
+  become: yes
+  tasks: 
+    - name: stop nginx service
+      service: 
+        name: nginx
+        state: stopped
+        enabled: no  # if you want to also enable nginx
+    - name: uninstall nginx
+      apt:
+        name: nginx
+        state: absent
+        update_cache: yes
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - name: uninstall nginx redhat
+      yum:
+        name: nginx
+        state: absent
+        update_cache: yes
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' or ansible_distribution == 'RedHat'
+

@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    network_name: valar-azure-net123
+    network_ip: 10.210.0.0/16
+    resource_group_name: cpg-dnd
+    location: westus
+  tasks:
+    - name: VNet - Create virtual network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ network_name }}"
+        location: "{{location}}"
+        address_prefixes:
+          - "{{network_ip}}"
+        tags:
+          environment: dev
+          department: itom
+      register: output_vnet
+    - debug: var=output_vnet

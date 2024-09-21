@@ -1,0 +1,32 @@
+---
+- name: ssh to instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: add hosts
+      add_host:
+        name: "{{host_ip}}"
+        groups: created_nodes
+        ansible_user: "{{ssh_user}}"
+        ansible_connection: "ssh"
+        ansible_ssh_private_key_file: "{{private_key_path}}"
+
+- hosts: created_nodes
+  become: yes 
+  remote_user: "{{ssh_user}}"
+  vars:
+    http_port: 80
+  tasks:
+    - name: Wait for SSH banners
+      wait_for_connection:
+        delay: 5
+        timeout: 30000
+
+    - name: Check Update
+      apt:
+        update_cache: yes
+
+    - apt: name=apache2 update_cache=yes state=present
+    
+    - debug: var=ansible_facts

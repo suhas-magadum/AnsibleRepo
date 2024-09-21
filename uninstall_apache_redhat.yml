@@ -1,0 +1,10 @@
+- hosts: all
+  become: yes
+  vars:
+    http_port: 80
+  tasks:
+    - name: stop apache2
+      service: name=apache2 state=stopped
+    - name: uninstall apache2
+      yum: name=apache2 update_cache=yes state=absent
+    

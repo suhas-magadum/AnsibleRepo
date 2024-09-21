@@ -1,0 +1,14 @@
+- name: Hello World Sample
+  hosts: all
+  tasks:
+    - name: Hello Message
+      debug:
+        msg: "Hello World!"
+    - set_fact: host_name="xxx"
+        
+- name: Hello World Sample1
+  hosts: all
+  tasks:
+    - name: Hello Message
+      debug:
+        msg: ansible_facts["host_name"]

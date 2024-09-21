@@ -1,0 +1,77 @@
+---
+- hosts: localhost
+  vars:
+    vpc_name: valarrr
+    vpc_cidr: 10.10.1.0/24
+  tasks:
+  - name: create VPC
+    ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ region }}"
+      state: present
+      tags: 
+        deploymentID: "{{ deploymentID }}"
+    register: vpc
+
+  #- debug: var=vpc
+
+  - ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ vpc.vpc.id }}"
+      cidr: "{{subnet_cidr}}"
+      region: "{{ region }}"
+      tags:
+        Name: "{{vpc_name}}"
+        deploymentID: "{{ deploymentID }}"
+    register: subnet
+
+  #- debug: var=subnet
+
+  - ec2_eni:
+      private_ip_address: "{{private_ip}}"
+      subnet_id: "{{subnet.subnet.id}}"
+      region: "{{ region }}"
+      state: present
+      #tags:
+        #deploymentID: "{{ deploymentID }}"
+    register: eni
+
+  #- debug: var=eni
+
+  - name: Create Internet gateway
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc.vpc.id }}"
+      region: "{{region}}"
+      state: present
+      tags:
+        deploymentID: "{{ deploymentID }}"
+    register: igw
+  
+  - name: create vm
+    ec2_instance:
+      name: "{{instance_name}}"
+      instance_type: t2.micro
+      image_id: "{{image_id}}"
+      state: present
+      region: "{{region}}"
+      key_name: "{{key}}"
+      vpc_subnet_id: "{{subnet.subnet.id}}"
+      network:
+        assign_public_ip: yes
+        interfaces:
+          - id: "{{eni.interface.id}}"
+      wait: yes
+      wait_timeout: 500
+      tags:
+        deploymentID: "{{ deploymentID }}"
+    register: vm
+      
+  - debug: var=vm
+
+  - name: allocate a new elastic IP and associate it with an instance
+    ec2_eip:
+      region: "{{region}}"
+      device_id: "{{ vm['instances'][0]['instance_id'] }}"
+      tags:
+        deploymentID: "{{ deploymentID }}"

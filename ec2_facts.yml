@@ -1,0 +1,12 @@
+---
+- name: Create Ec2 instances
+  hosts: localhost
+  connection: local
+  tasks:
+  - ec2_instance_info:
+      instance_ids:
+        - i-095d9be589c9403a6
+      region: us-west-1
+    register: instance_info
+      
+  - debug: var=instance_info

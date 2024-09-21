@@ -1,0 +1,53 @@
+---
+- name: Create Ec2 instances
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-west-1
+  tasks:
+    - name: create vm
+      ec2_instance:
+        name: stack001-vm
+        instance_type: t2.micro
+        image_id: "{{image_id}}"
+        state: present
+        region: "{{region}}"
+        key_name: "{{key}}"
+        vpc_subnet_id: "{{subnet_id}}"
+        network:
+          assign_public_ip: yes
+        wait: yes
+        wait_timeout: 500
+        tags:
+          name: appservers
+          os: ubuntu
+          deployment_tag: "{{deployment_id}}"
+      register: vm
+    - debug: var=vm
+    - name: add hosts
+      add_host:
+        name: "{{ vm['instances'][0]['private_ip_address'] }}"
+        #name: "10.198.252.145"
+        groups: created_nodes
+        ansible_user: "{{ssh_user}}"
+        ansible_connection: "ssh"
+        ansible_ssh_private_key_file: "{{private_key_path}}"
+- hosts: created_nodes
+  become: yes 
+  #remote_user: ubuntu
+  vars:
+    http_port: 80
+  tasks:
+    - name: Wait for SSH banners
+      wait_for_connection:
+        delay: 5
+        timeout: 30000
+
+    - name: Check Update
+      apt:
+        update_cache: yes
+
+    - apt: name=apache2 update_cache=yes state=present
+    
+    - debug: var=ansible_facts
