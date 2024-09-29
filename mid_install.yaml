@@ -1,0 +1,40 @@
+name: Install MID Server
+
+on: [push]
+
+jobs:
+  install_mid_server:
+    runs-on: ubuntu-latest
+
+    env:
+      YOUR_INSTANCE: cpgtrackbkp
+      YOUR_INSTANCE_USER_NAME: miduser
+      YOUR_INSTANCE_PASSWORD: Tester@01
+      YOUR_TD_INSTANCE: cpgtrackbkp
+      INSTALLER_PATH: "https://install.service-now.com/glide/distribution/builds/package/mid/2024/09/23/mid.trackclscopper-06-15-2023_09-23-2024_1335.linux.x86-64.zip"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download and extract MID Server
+        run: |
+          URL=https://${{ env.YOUR_INSTANCE }}.service-now.com/
+          TD_URL=https://k8s0609948-node1.thunder.devsnc.com/
+          YOUR_MIDSERVER_NAME=${{ env.YOUR_INSTANCE }}$(date +"%Y-%m-%d %T")
+
+          wget --no-check-certificate $INSTALLER_PATH
+          unzip *.zip
+
+      - name: Update config.xml
+        run: |
+          sed -i "/mid.instance.username/c\  <parameter name=\"mid.instance.username\" value=\"${{ env.YOUR_INSTANCE_USER_NAME }}\"/>" agent/config.xml
+          sed -i "/mid.instance.password/c\ <parameter name=\"mid.instance.password\" secure=\"false\" value=\"${{ env.YOUR_INSTANCE_PASSWORD }}\"/>" agent/config.xml
+          sed -i "/parameter name=\"url\"/c\  <parameter name=\"url\" value=\"$URL\"/>" agent/config.xml
+          sed -i "/parameter name=\"name\" value=\"/c\  <parameter name=\"name\" value=\"$YOUR_MIDSERVER_NAME\"/>" agent/config.xml
+
+      - name: Start MID Server
+        run: |
+          cd agent
+          sh start.sh
+
